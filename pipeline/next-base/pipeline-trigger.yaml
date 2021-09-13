@@ -1,0 +1,62 @@
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: vcs-trigger
+spec:
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: build-node-
+      spec:
+        serviceAccountName: build-bot
+        pipelineRef:
+          name: nextjs-pipeline
+        workspaces:
+        - name: shared-data
+          volumeClaimTemplate:
+            spec:
+              accessModes:
+              - ReadWriteOnce
+              resources:
+                requests:
+                  storage: 300Mi
+        params:
+        - name: repo-url
+          value: https://github.com/cloud-native-garage-method-cohort/nextjs-app-tkaatz.git
+        - name: branch-name
+          value: main
+        - name: image-repo
+          value: quay.io/tkaatz/next-sample 
+        - name: app-name
+          value: next-sample-app
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: vcs-trigger
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: vcs-trigger
+spec:
+  serviceAccountName: vcs-trigger
+  triggers:
+    - bindings:
+        - ref: vcs-trigger
+      template:
+        name: vcs-trigger
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: vcs-trigger
+spec:
+  port:
+    targetPort: 8080
+  to:
+    kind: Service
+    name: el-vcs-trigger
+    weight: 100
