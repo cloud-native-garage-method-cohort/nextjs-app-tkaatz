@@ -1,0 +1,27 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: build-next-
+spec:
+  serviceAccountName: build-bot
+  pipelineRef:
+    name: nextjs-pipeline
+  workspaces:
+  - name: shared-data
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 300Mi
+  params:
+  - name: repo-url
+    value: https://github.com/cloud-native-garage-method-cohort/nextjs-app-tkaatz.git
+  - name: branch-name
+    value: main
+  - name: image-repo
+    value: quay.io/tkaatz/next-sample 
+  - name: app-name
+    value: next-sample-app

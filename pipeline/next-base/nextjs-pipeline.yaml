@@ -54,7 +54,7 @@ spec:
       params:
         - name: ARGS
           value:
-            - test
+            - install-ci-test
       runAfter:
         - clone-repo
     - name: build-and-push-image
